@@ -1,45 +1,73 @@
+//Ascii-art-web
+
+// We are going to use http library as the name implies, it's one that deals with the web.
+// Golang was built from the ground up to be aware of the web to be able to deal with it in a meaningful fashion.
+
 package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"strings"
 	"text/template"
 )
 
+var templatePath = "templates/index.html"
+
 //We need to create a request handler. This is a func. that going to be used for every request that's made to our server.
-//
 
 func main() {
+	// Handling the image
+	fileServer := http.FileServer(http.Dir("./images"))
+
 	//This tell HTTP that when a request is made we want to use our handler
 	// "/" - Path name
-	// Routing
-	// http.HandleFunc("/", formHandler)
-	http.HandleFunc("/", func(w http.formHandler, r *http.ResponseWriter))
+	// http.HandleFunc is a part of the http package. I am going to give it a path name. ("/") That's the URL.
+	// URL - uniform resource locator that I want to listen to.
+	// http.ResponseWriter the first thing that you need to have because this is a handler function for the http.
+	// :8080 common alternative HTTP port used for web traffic.
+	const portNumber = ":8080"
+	http.Handle("/images/", http.StripPrefix("/images", fileServer))
 
+	// Routing
+	http.HandleFunc("/", formHandler)
 	// Routing
 	http.HandleFunc("/ascii-art", resultHandler)
-
 	// Then we need to tell HTTP to listen and serve on port 8080
-	fmt.Println("Server is starting at port :8080")
-	err := http.ListenAndServe(":8080", nil)
+	fmt.Printf("Starting application on port %s", portNumber)
+
+	// Web server that listens for requests. (Without it, the main func never executes)
+
+	err := http.ListenAndServe(portNumber, nil)
 	if err != nil {
 		fmt.Println("\nCannot start server")
 	}
 }
 
-// w - response writer
+// Render template
+// It doesn't return anything because it writes everything to the response writer.
+// . dot means root level of my application (inside ascii-art-web folder)
+// html is an argument of the template I want to pass as a string
+
+// func renderTemplate(w http.ResponseWriter, html string) {
+// 	parsedTemplate, _ := template.ParseFiles("./templates/" + html)
+// 	err :=parsedTemplate.Execute(w, nil)
+// 	if err != nil (
+// 		fmt.Println("error parsing template", err)
+// 		return
+// 	)
+
+// }
+
 func formHandler(w http.ResponseWriter, r *http.Request) {
-	//
 	if r.Method == "GET" && r.URL.Path != "/" {
 		showError(w, "400 BAD REQUEST", http.StatusBadRequest)
+		// return here will stop execution this function
 		return
 	}
-
-	t, err := template.ParseFiles("templates/index.html")
+	// Render the index.html template
+	t, err := template.ParseFiles(templatePath)
 	if err != nil {
-		showError(w, "404 BANNER NOT FOUND", http.StatusNotFound)
+		showError(w, "404 TEMPLATE NOT FOUND", http.StatusNotFound)
 		return
 	}
 
@@ -56,32 +84,10 @@ func resultHandler(w http.ResponseWriter, r *http.Request) {
 
 		banner := r.FormValue("banner")
 		text := r.FormValue("request")
-
-		// Required for Unit Testing to Parse param/////////////
-		// params format banner=shadow&request=A
-		reqBody, err := ioutil.ReadAll(r.Body)
-		if err == nil {
-			params := strings.Split(string(reqBody), "&")
-			for _, param := range params {
-				paramSplit := strings.Split(param, "=")
-				if len(paramSplit) != 2 {
-					break
-				}
-				key := paramSplit[0]
-				value := paramSplit[1]
-				if key == "banner" && banner == "" {
-					banner = value
-				}
-				if key == "request" && text == "" {
-					text = value
-				}
-			}
-		}
-		////////////////////////
-
 		b, err := readFile(banner + ".txt")
 		if err != nil {
 			showError(w, "404 BANNER NOT FOUND", http.StatusNotFound)
+			// return here will stop execution this function
 			return
 		}
 
@@ -96,9 +102,10 @@ func resultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	showError(w, "500 INTERNAL SERVER ERROR", http.StatusInternalServerError)
+	showError(w, "400 BAD REQUEST", http.StatusBadRequest)
 }
 
+// Render the error.html template
 func showError(w http.ResponseWriter, message string, statusCode int) {
 	t, err := template.ParseFiles("templates/error.html")
 	if err == nil {

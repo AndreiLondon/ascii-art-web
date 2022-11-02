@@ -5,21 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <!--<meta http-equiv="refresh" content="6; url='http://localhost:8080/'" />-->
+    <h1>{{.}}</h1>
+  
     <form>
         <input type="button" value="Go back" onclick="history.back()">
        </form>
 </head>
 <body>
-    
-    <h1>{{.}}</h1>
-    <!-- // In the go template lang. range is used to loop other the value that we pass. (Like list of comments)
-    // Then for each comment we just created a div that containts this string.
-    // If we were to run our server as is 
-    <h1>Comments</h1>
-    {{ range . }}
-    <div>{{ . }}</div>
-    {{ end }} -->
     
 </body>
 </html>

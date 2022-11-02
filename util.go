@@ -40,6 +40,7 @@ func parseBanner(s string) map[rune][][]rune {
 	return myMap
 }
 
+// We want to print ascii-art banners via w (http.ResponseWriter)
 func printMessage(w http.ResponseWriter, s string, myMap map[rune][][]rune) {
 	split := strings.Split(s, "\n")
 
